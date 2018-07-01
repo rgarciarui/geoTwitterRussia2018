@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 .httr-oauth
+geoTwitterRussia2018_2.r
+geoTwitterRussia2018_03.r
+geoTwitterRussia2018_04.r
+splitCountry.r
+geoTwitterRussia2018.tex
