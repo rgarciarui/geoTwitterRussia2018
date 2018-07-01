@@ -1,0 +1,323 @@
+---
+title: "geoTwitter to #Russia2018"
+author: "Ricardo Garcia Ruiz"
+date: '`r format(Sys.Date(),"%e de %B, %Y")`'
+output:
+  html_document:
+    toc: TRUE
+    number_sections: true
+    toc_depth: 3
+    theme: cerulean
+    highlight: tango
+    always_allow_html: yes
+  pdf_document:
+    highlight: tango
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+  word_document:
+    toc: TRUE
+    highlight: default
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = getwd())
+options(OutDec=",")
+library(knitr)
+library(kableExtra)
+```
+
+```{r set_library_to_plot, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
+library(twitteR)
+library(ROAuth)
+library(ggmap)
+library(ggplot2)
+library(tmap)
+library(tmaptools)
+library(stringr)
+```
+
+
+# Práctica 1: Análisis de datos geoespaciales
+
+## Enunciado
+
+>Este documento recoge la práctica de la asignatura **“Análisis de Datos Geoespaciales”**. Se plantean dos ejercicios independientes; ambos ejercicios deben resolverse de forma individual y autónoma por el estudiante. Para la resolución de los ejercicios podrán emplearse como apoyo los materiales del aula y contenidos de internet.
+
+# Ejercicio 1: Análisis geocodificado de tweets  
+
+El análisis geográfico de las aportaciones de usuarios de redes sociales como Twitter o Facebook ha ido ganando relevancia en los últimos años como herramienta para el estudio de fenómenos socioculturales. En el ejercicio se plantea el uso de la red social Twitter.  
+
+El objetivo del ejercicio es geocodificar, a nivel país, la procedencia de los usuarios que han utilizado un hashtag o etiqueta determinada (a elegir por el estudiante). A partir de los tweets individuales obtenidos de la red social, se propone la generación de un mapa que muestre el número de tweets por país. El mapa, tematizado convenientemente, será publicado en la aplicación GIS en la nube ArcGIS Online.  
+
+## Desarrollo  
+
+Se propone al estudiante seleccionar un hashtag (por ejemplo “#Eurovision2018”) y realizar una búsqueda de tweets que contengan la etiqueta seleccionada. Para ello, se propone, en el Anexo I del presente documento, un método de geocodificación de los usuarios autores de los tweets. Una vez geocodificados los usuarios (a partir de la información de localización asociada a cada perfil de usuario), se realizará un análisis geográfico que contabilizará el número de usuarios por país. Se propone utilizar la misma capa (shapefile) de países que se empleó en la PEC1 y disponible en el aula (Fichero PAISES_GENERALIZADOS.rar). Todo éste proceso será desarrollado utilizando R.  
+
+El shapefile resultante de éste análisis se subirá a la plataforma ArcGIS Online y se tematizará convenientemente. Una vez finalizado, el mapa será compartido con el profesor (jde_diegoa@uoc.edu). Se incluirá también la URL del mapa en el documento de entrega que se subirá al Registro de Evaluación Continua del Aula.
+Nota: Ha de tenerse en cuenta que en este ejercicio se utilizarán APIs de acceso gratuito pero limitado. Se busca que el estudiante obtenga al menos 500 resultados válidos geocodificados a nivel país (como mínimo).  
+
+## Resolución Ejercicio 1
+
+### Carga de los elementos de acceso a Twitter  
+
+En primer lugar obtenemos las claves de acceso a Twitter según el manual de procedimiento de la práctica.  
+
+Una vez adquiridas procedemos a cargarlas en variables en R para poder aplicarlas a una función de acceso a Twitter desde el entorno de RStudio:  
+
+```{r keys_twitter}
+# variables de acceso a Twitter mediante R a geoTwitterRussia2018
+consumer_key <- "Djv1QIHp5DCTtFZDF4P7PmKhe"
+consumer_secret <- "PXwhHVALeuGnH5Myn4qLzwfM0YUHCX67Ife8tlujhzAGI0lwYe"
+access_token <- "287839706-VlvixPev6CuRnMwAlNn5U7VeVEafgh3JMWCHqUvL"
+access_secret <- "csorAvqaLS82yU2hhJj5pZvBHPNQtOOVd04ZV7gwJWTWH"
+```
+
+Ahora procedemos a ajustar las funciones de handshake de autenticación OAuth del paquete httr para una sesión twitteR. Esto lo hacemos mediante la siguiente función de carga:
+
+```{r oauth_wraps}
+
+# Esta función ajusta las funciones de handshake de autenticación 
+# OAuth del paquete httr para una sesión twitteR
+setup_twitter_oauth(consumer_key,consumer_secret, access_token, access_secret)
+
+```
+
+En el momento de ejecutar esta función se nos permite optar por ajuste del OAuth permanentemente o bien hacerlo por cada sesión. Nosotros optamos por el modo permanente.
+
+### Acceso a Twitter desde R para carga de twitts
+
+A continuación, procedemos a delimitar el tipo de hashtag que vamos a utilizar. Aunque hemos estado dudando entre utilizar '#Russia2018' o bien combinado con '#WorldCup', finalmente optamos solo por la versión sencilla:  
+
+
+```{r hastag_twitts_01}
+
+# Hashtag definitivo
+searchTerm <- "#Russia2018"
+
+```
+
+```{r hastag_twitts_02, eval=FALSE}
+# Número máximo de twitts
+searchResults <- searchTwitter(searchTerm, n = 15000)
+
+```
+
+```{r save_searchResults, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
+# salvamos la lista obtenida en el sistema
+save(searchResults, file = "searchResults.RData")
+```
+
+
+```{r load_searchResults, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
+# leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
+load(file = "searchResults.RData")
+```
+
+
+Además, como se ve, se pide la carga de 15000 twitts máximo.  
+
+
+### Tratamiento de los datos descargados de Twitter  
+
+A continuación convertimos la lista con los resultados obtenidos en un data.frame manejable en R:  
+
+```{r make_to_dataframe}
+# convierte la lista de resultados searchResult en un dataframe
+tweetFrame <- twListToDF(searchResults)
+```
+
+
+```{r tweetFrame_table, echo=FALSE, cache=FALSE, results = 'asis', comment=FALSE, warning=FALSE}
+# Tipo de dato asignado a cada campo
+kable(summary(tweetFrame)[,1:8], caption = "Detalle del dataframe tweetFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+kable(summary(tweetFrame)[,9:16], caption = "Detalle del dataframe tweetFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+```
+
+En este momento generamos una lista de los usuarios que han emitido twits sobre los datos obtenidos en **tweetFrame**:  
+
+```{r get_userInfo, eval=FALSE}
+# lista (userInfo) a partir del listado de usuarios asociados a los tweets anteriores
+
+# como calcularla completa da un error persistente se calcula por
+# tramos y luego se une en una sola lista
+userInfo <- lookupUsers(tweetFrame$screenName[1:5000])
+userInfo2 <- lookupUsers(tweetFrame$screenName[5001:10000])
+
+# Da error:
+# Error in twInterfaceObj$doAPICall(paste("users", "lookup", sep = "/"),  : 
+#                                    Forbidden (HTTP 403).
+#userInfo3 <- lookupUsers(tweetFrame$screenName[10001:15000])
+
+userInfo3 <- lookupUsers(tweetFrame$screenName[10001:13900])
+userInfo4 <- lookupUsers(tweetFrame$screenName[13450:15000])
+
+# fusionamos los datos en una sola lista
+userInfo = c(userInfo, userInfo2, userInfo3, userInfo4)
+
+# borramos las variables no necesarias
+rm(userInfo2, userInfo3, userInfo4)
+
+```
+
+
+```{r save_userInfo, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
+# salvamos la lista obtenida en el sistema
+save(searchResults, file = "userInfo.RData")
+```
+
+
+```{r load_userInfo, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
+# leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
+load(file = "userInfo.RData")
+```
+
+
+Ahora pasamos a convertir esta lista en un dataframe que podamos utilizar con mayor comodidad en los cálculos posteriores:  
+
+```{r userinfo_to_dataframe}
+# Convertimos la lista en dataFrame
+userFrame <- twListToDF(userInfo)
+```
+
+
+```{r userFrame_table, echo=FALSE, cache=FALSE, results = 'asis', comment=FALSE, warning=FALSE}
+# Tipo de dato asignado a cada campo
+kable(summary(userFrame)[,1:8], caption = "Detalle del dataframe userFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+kable(summary(userFrame)[,9:16], caption = "Detalle del dataframe userFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+```
+
+Finalmente, filtramos el dataframe de forma que mantengamos solo los datos de los usuarios de los que podamos obtener su localización geográfica:  
+
+```{r get_addresses}
+# Filtramos el dataFrame obteniendo el listado de todos aquellos usuarios 
+# que introdujeron información relativa a su localización
+addresses <- userFrame[userFrame$location !="",]
+```
+
+
+```{r addresses_table, echo=FALSE, cache=FALSE, results = 'asis', comment=FALSE, warning=FALSE}
+# Tipo de dato asignado a cada campo
+kable(summary(addresses)[,1:8], caption = "Detalle del dataframe addresses", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+kable(summary(addresses)[,9:16], caption = "Detalle del dataframe addresses", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+```
+
+
+### Búsqueda de los datos geográficos de los twitts: latitud y longitud  
+
+Gestionamos la geo localización de longitud y latitud de los twitts que tienen informado correctamente (o al menos que se pueda utilizar en la localización) el pais/localidad en el dataframe 'addresses'.  
+
+Para ello consultamos la dirección de internet http://nominatim.openstreetmap.org ya que otras alternativas eran menos fiables para consultar todos los twitts de nuestra lista.  
+
+De nuestro dataframe utilizamos el campo 'location' y utilizando la función geocode_OSM() nos da como retorno la longitud y latitud de cada twitt:  
+
+
+```{r get_geolocalization, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
+# Creamos un dataframe vacio para guardar todos los datos finales obtenidos
+geocoded_02 <- data.frame()
+
+# Manejamos un buble en el que accederemos a la función geocode_OSM()
+# suministrandoles uno a uno los parámetros
+for( i in 1:nrow(addresses) ){
+  
+  # Creamos una dataframe estandar para los datos que necesitamos obtener
+  answer <- data.frame(lat=NA, long=NA, screenName = NA)
+  
+  # llamamos a la función geocode_OSM() pero capturando los eventos de 
+  # warnings que se puedan producir
+  result = try(
+    geocode_OSM(addresses$location[i], 
+                projection = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", 
+                return.first.only = TRUE, 
+                details = FALSE, 
+                as.data.frame = NA, 
+                as.SPDF = FALSE,
+                server = "http://nominatim.openstreetmap.org")
+  )
+  
+  # si no se ha producido un warning de tipo "try_error", si se produce se descarta
+  # el usuario
+  if(class(result) != "try-error"){
+    
+    # Si el valor obtenido en resultado fuera nulo se descarta
+    if(!is.null(result)){
+      
+      answer$lat  = result$coords[2]    # latitud
+      answer$long = result$coords[1]    # longitud
+      answer$screenName = addresses$screenName[i]   # usuario
+      
+      # añadimos los datos a nuestro dataframe de salida
+      geocoded_02 <- rbind(geocoded_02, answer)
+      
+    }
+  }
+  # en este punto manejamos el tiempo de retardo para cada llamada
+  # a http://nominatim.openstreetmap.org, ya que si las llamadas no tienen
+  # un retrado de al manos un segundo, la pagina de nominatim nos expulsa
+  # y corta la comunicación y las consultas. Se introduce un retraso de 
+  # 1.2 segundos por precaución
+  Sys.sleep(1.2)
+}
+```
+
+
+```{r save_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
+# salvamos la lista obtenida en el sistema
+save(geocoded, file = "geocoded.RData", 
+     compress = "bzip2", compression_level = 9)
+```
+
+
+```{r load_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
+# leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
+load(file = "geocoded_02.RData")
+```
+
+Con este procedimiento se consiguen una cantidad de `r nrow(geocoded_02)` registros para el procesamiento gráfico y geográfico.
+
+
+
+
+
+
+
+
+
+
+
+
+# Ejercicio 2: Generación de mapas de contaminación  
+
+En los últimos años, la contaminación atmosférica se está convirtiendo en un grave problema en los entornos urbanos. En ciudades como Madrid, los altos niveles de contaminación están provocando un grave problema de salud pública. El Ayuntamiento de la ciudad ha decidido tomar una serie de polémicas medidas, que afectan sobre todo a la circulación de vehículos privados, con el fin de reducir la emisión de estos contaminantes y en especial del dióxido de nitrógeno (NO2).
+El objetivo del ejercicio es la generación de dos mapas, uno utilizando el interpolador IDW y otro utilizando krigeaje, del máximo nivel de contaminación diaria para NO2 en la ciudad de Madrid. Durante el ejercicio se utilizará R como entorno para el tratamiento de los datos.  
+
+## Desarrollo  
+
+Para el desarrollo del ejercicio utilizaremos los siguientes conjuntos de datos:
+* Datos en tiempo real de calidad del aire: https://goo.gl/BMLJ8X. Utilizaremos el archivo etiquetado como **“Calidad del aire. Tiempo real csv”**. Tened en cuenta que este fichero se actualiza cada hora. La descripción del conjunto de datos puede encontrarse en https://goo.gl/tBnK1o.  
+
+* Estaciones de control: https://goo.gl/AuCxvu. Utilizaremos el fichero etiquetado como **“Calidad del aire: estaciones de control”**, en formato xls. Las coordenadas se encuentran codificadas como coordenadas geográficas sexagesimales, con datum de referencia WGS84.  
+
+* Límites geográficos de los distritos de Madrid: https://goo.gl/SdZiH1. Utilizaremos el fichero etiquetado como **“Distritos en formato geográfico en ETRS89”**. El fichero shapefile contiene los límites municipales en sistema de coordenadas EPSG:25830.  
+
+El procedimiento propuesto incluye los siguientes pasos:  
+
+* Descarga de la información indicada.
+* Lectura de los ficheros de datos con R.
+* Cálculo de las coordenadas geográficas de localización de las estaciones a partir de las coor-denadas sexagesimales codificadas en los datos originales.
+* Obtención del valor máximo horario de contaminación por NO2 para cada estación (los datos de dióxido de nitrógeno vienen codificados con el valor 8 en el campo magnitud).
+* Asociación de los datos de contaminación con la localización geográfica de cada estación.
+* Reproyección de la capa de límites municipales y obtención de un polígono único con el límite del municipio.
+* Elaboración de los mapas requeridos. En ambos casos se podrán utilizar diferentes juegos de parámetros.
+
+
+
+
+
+
+
