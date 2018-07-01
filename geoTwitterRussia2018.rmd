@@ -275,10 +275,42 @@ save(geocoded, file = "geocoded.RData",
 
 ```{r load_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
 # leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
-load(file = "geocoded_02.RData")
+geocoded = load(file = "geocoded_02.RData")
 ```
 
 Con este procedimiento se consiguen una cantidad de `r nrow(geocoded_02)` registros para el procesamiento gráfico y geográfico.
+
+### Generación de shapefile y csv para tratamiento de datos  
+
+En este paso procedemos a guardar el conjunto de datos obtenido en 2 formatos: RDS y CVS.
+
+```{r save_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
+# En este punto pasamos a salvar en formato RDS
+saveRDS(geocoded,"twitter_users_geocoded2.rds") 
+
+# En este punto pasamos a salvar en formato csv
+write.table(geocoded, file="twitter_users_geocoded2.csv", 
+            sep=",", 
+            row.names=FALSE)
+```
+
+Estos formatos los utilizaremos posteriormente para la presentación del mapa en ArcGis.  
+
+
+### Presentación preliminar mediante R de un mapa de los puntos  
+
+```{r plot_mapa}
+# De manera general creamos un mapa de visualización del conjunto de datos
+# de twitts con sus coordenadas establecidas
+mapaMundi <- borders("world", colour="gray60", fill="gray60") 
+mapa <- ggplot() + mapaMundi 
+mapa <- mapa + geom_point(aes(x=geocoded_02$long, y=geocoded_02$lat),
+                          color="red", size=1)
+mapa
+```
+
+
+
 
 
 

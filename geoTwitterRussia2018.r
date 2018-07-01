@@ -144,10 +144,17 @@ save(geocoded_02, file = "geocoded_02.RData",
 saveRDS(geocoded_02,"twitter_users_geocoded2.rds") 
 
 # En este punto pasamos a salvar en formato csv
-write.table(geocoded, file="twitter_users_geocoded2.csv", 
+write.table(geocoded_02, file="twitter_users_geocoded2.csv", 
             sep=",", 
             row.names=FALSE)
 
+# De manera general creamos un mapa de visualización del conjunto de datos
+# de twitts con sus coordenadas establecidas
+mapaMundi <- borders("world", colour="gray60", fill="gray60") 
+mapa <- ggplot() + mapaMundi 
+mapa <- mapa + geom_point(aes(x=geocoded_02$long, y=geocoded_02$lat),
+                          color="red", size=1)
+mapa
 
 
 
