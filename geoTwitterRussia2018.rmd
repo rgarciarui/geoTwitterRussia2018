@@ -309,6 +309,8 @@ mapa <- mapa + geom_point(aes(x=geocoded_02$long, y=geocoded_02$lat),
 mapa
 ```
 
+### Carga del fichero shapefile: paises_generalizados  
+
 
 
 
