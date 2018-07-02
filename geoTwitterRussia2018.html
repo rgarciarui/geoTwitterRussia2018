@@ -655,6 +655,8 @@ userInfo =<span class="st"> </span><span class="kw">c</span>(userInfo, userInfo2
 
 <span class="co"># borramos las variables no necesarias</span>
 <span class="kw">rm</span>(userInfo2, userInfo3, userInfo4)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># salvamos la lista obtenida en el sistema</span>
+<span class="kw">save</span>(userInfo, <span class="dt">file =</span> <span class="st">&quot;userInfo.RData&quot;</span>)</code></pre></div>
 <p>Ahora pasamos a convertir esta lista en un dataframe que podamos utilizar con mayor comodidad en los cálculos posteriores:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Convertimos la lista en dataFrame</span>
 userFrame &lt;-<span class="st"> </span><span class="kw">twListToDF</span>(userInfo)</code></pre></div>
@@ -1478,13 +1480,125 @@ NA
 <p>Gestionamos la geo localización de longitud y latitud de los twitts que tienen informado correctamente (o al menos que se pueda utilizar en la localización) el pais/localidad en el dataframe ‘addresses’.</p>
 <p>Para ello consultamos la dirección de internet <a href="http://nominatim.openstreetmap.org" class="uri">http://nominatim.openstreetmap.org</a> ya que otras alternativas eran menos fiables para consultar todos los twitts de nuestra lista.</p>
 <p>De nuestro dataframe utilizamos el campo ‘location’ y utilizando la función geocode_OSM() nos da como retorno la longitud y latitud de cada twitt:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Creamos un dataframe vacio para guardar todos los datos finales obtenidos</span>
+geocoded_<span class="dv">02</span> &lt;-<span class="st"> </span><span class="kw">data.frame</span>()
+
+<span class="co"># Manejamos un loop en el que accederemos a la función geocode_OSM()</span>
+<span class="co"># suministrandoles uno a uno los parámetros</span>
+<span class="cf">for</span>( i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(addresses) ){
+  
+  <span class="co"># Creamos una dataframe estandar para los datos que necesitamos obtener</span>
+  answer &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">lat=</span><span class="ot">NA</span>, <span class="dt">long=</span><span class="ot">NA</span>, <span class="dt">screenName =</span> <span class="ot">NA</span>)
+  
+  <span class="co"># llamamos a la función geocode_OSM() pero capturando los eventos de </span>
+  <span class="co"># warnings que se puedan producir</span>
+  result =<span class="st"> </span><span class="kw">try</span>(
+    <span class="kw">geocode_OSM</span>(addresses<span class="op">$</span>location[i], 
+                <span class="dt">projection =</span> <span class="st">&quot;+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs&quot;</span>, 
+                <span class="dt">return.first.only =</span> <span class="ot">TRUE</span>, 
+                <span class="dt">details =</span> <span class="ot">FALSE</span>, 
+                <span class="dt">as.data.frame =</span> <span class="ot">NA</span>, 
+                <span class="dt">as.SPDF =</span> <span class="ot">FALSE</span>,
+                <span class="dt">server =</span> <span class="st">&quot;http://nominatim.openstreetmap.org&quot;</span>)
+  )
+  
+  <span class="co"># si no se ha producido un warning de tipo &quot;try_error&quot;, si se produce se descarta</span>
+  <span class="co"># el usuario</span>
+  <span class="cf">if</span>(<span class="kw">class</span>(result) <span class="op">!=</span><span class="st"> &quot;try-error&quot;</span>){
+    
+    <span class="co"># Si el valor obtenido en resultado fuera nulo se descarta</span>
+    <span class="cf">if</span>(<span class="op">!</span><span class="kw">is.null</span>(result)){
+      
+      answer<span class="op">$</span>lat  =<span class="st"> </span>result<span class="op">$</span>coords[<span class="dv">2</span>]    <span class="co"># latitud</span>
+      answer<span class="op">$</span>long =<span class="st"> </span>result<span class="op">$</span>coords[<span class="dv">1</span>]    <span class="co"># longitud</span>
+      answer<span class="op">$</span>screenName =<span class="st"> </span>addresses<span class="op">$</span>screenName[i]   <span class="co"># usuario</span>
+      
+      <span class="co"># añadimos los datos a nuestro dataframe de salida</span>
+      geocoded_<span class="dv">02</span> &lt;-<span class="st"> </span><span class="kw">rbind</span>(geocoded_<span class="dv">02</span>, answer)
+      
+    }
+  }
+  <span class="co"># en este punto manejamos el tiempo de retardo para cada llamada</span>
+  <span class="co"># a http://nominatim.openstreetmap.org, ya que si las llamadas no tienen</span>
+  <span class="co"># un retrado de al manos un segundo, la pagina de nominatim nos expulsa</span>
+  <span class="co"># y corta la comunicación y las consultas. Se introduce un retraso de </span>
+  <span class="co"># 1.2 segundos por precaución</span>
+  <span class="kw">Sys.sleep</span>(<span class="fl">1.2</span>)
+}</code></pre></div>
 <p>Manejamos un loop en el que accederemos a la función <strong>rev_geocode_OSM()</strong> suministrandoles uno a uno los parámetros par obtener el pais, ya que no tenemos en la petición original los datos de los paises.</p>
 <p>Creamos un nuevo dataframe, geo_paises_OSM, que sera el que contenga los datos finales con latitud, longitud y país.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Dataframe final con los datos completos que utilizaremos </span>
+geo_paises_OSM =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">lat =</span> <span class="kw">double</span>(),
+                            <span class="dt">long =</span> <span class="kw">double</span>(),
+                            <span class="dt">screenName =</span> <span class="kw">character</span>(),
+                            <span class="dt">pais =</span> <span class="kw">character</span>(), 
+                            <span class="dt">code =</span> <span class="kw">character</span>(), 
+                            <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+
+<span class="cf">for</span>( i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(geocoded_<span class="dv">02</span>) ){
+  
+  <span class="co"># llamamos a la función rev_geocode_OSM() pero capturando los eventos de </span>
+  <span class="co"># warnings que se puedan producir</span>
+  
+  <span class="co"># creamos un objeto SpatialPoints para suministrarlo a la función </span>
+  <span class="co"># rev_geocode_OSM() con formato long:lat</span>
+  sp01 =<span class="st"> </span><span class="kw">SpatialPoints</span>(<span class="dt">coords =</span> <span class="kw">cbind</span>(geocoded_<span class="dv">02</span><span class="op">$</span>long[i], geocoded_<span class="dv">02</span><span class="op">$</span>lat[i]),
+                       <span class="dt">proj4string =</span> <span class="kw">CRS</span>(<span class="st">&quot;+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs&quot;</span>))
+  result =<span class="st"> </span><span class="kw">try</span>(
+    <span class="kw">rev_geocode_OSM</span>(<span class="dt">x=</span>sp01, <span class="dt">server =</span> <span class="st">&quot;http://nominatim.openstreetmap.org&quot;</span>)
+  )
+  
+  <span class="co"># si no se ha producido un warning de tipo &quot;try_error&quot;, si se produce se descarta</span>
+  <span class="co"># el usuario</span>
+  <span class="cf">if</span>(<span class="kw">class</span>(result) <span class="op">!=</span><span class="st"> &quot;try-error&quot;</span>){
+    
+    <span class="co"># Si el valor obtenido en resultado fuera nulo se descarta</span>
+    <span class="cf">if</span>(<span class="op">!</span><span class="kw">is.null</span>(result)){
+      
+      <span class="co"># añadimos los datos a nuestro dataframe de salida</span>
+      geo_paises_OSM &lt;-<span class="st"> </span><span class="kw">rbind</span>(geo_paises_OSM, 
+                              <span class="kw">data.frame</span>(geocoded_<span class="dv">02</span><span class="op">$</span>lat[i],
+                                         geocoded_<span class="dv">02</span><span class="op">$</span>long[i],
+                                         geocoded_<span class="dv">02</span><span class="op">$</span>screenName[i],
+                                         result[[<span class="dv">1</span>]]<span class="op">$</span>country, 
+                                         result[[<span class="dv">1</span>]]<span class="op">$</span>country_code))
+    }
+  } <span class="cf">else</span>{
+    <span class="co"># añadimos los datos a nuestro dataframe de salida</span>
+    geo_paises_OSM &lt;-<span class="st"> </span><span class="kw">rbind</span>(geo_paises_OSM, 
+                            <span class="kw">data.frame</span>(<span class="ot">NULL</span>,<span class="ot">NULL</span>,<span class="ot">NULL</span>, <span class="ot">NULL</span>, <span class="ot">NULL</span>))   
+  }
+  <span class="co"># en este punto manejamos el tiempo de retardo para cada llamada</span>
+  <span class="co"># a http://nominatim.openstreetmap.org, ya que si las llamadas no tienen</span>
+  <span class="co"># un retrado de al manos un segundo, la pagina de nominatim nos expulsa</span>
+  <span class="co"># y corta la comunicación y las consultas. Se introduce un retraso de </span>
+  <span class="co"># 1.2 segundos por precaución</span>
+  <span class="kw">Sys.sleep</span>(<span class="fl">1.2</span>)
+}
+
+<span class="co"># colocamos los nombres correctos en el dataframe</span>
+<span class="kw">colnames</span>(geo_paises_OSM) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;lat&quot;</span>, <span class="st">&quot;long&quot;</span>, <span class="st">&quot;screenName&quot;</span>, <span class="st">&quot;country&quot;</span>, <span class="st">&quot;country_code&quot;</span>)
+geo_paises_OSM<span class="op">$</span>country_code &lt;-<span class="st"> </span><span class="kw">toupper</span>(geo_paises_OSM<span class="op">$</span>country_code)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># salvamos la lista obtenida en el sistema</span>
+<span class="kw">saveRDS</span>(geo_paises_OSM, <span class="dt">file =</span> <span class="st">&quot;geo_paises_OSM.rds&quot;</span>, 
+        <span class="dt">compress =</span> <span class="st">&quot;bzip2&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># salvamos la lista obtenida en el sistema</span>
+<span class="kw">saveRDS</span>(geocoded, <span class="dt">file =</span> <span class="st">&quot;geocoded.rds&quot;</span>, 
+     <span class="dt">compress =</span> <span class="st">&quot;bzip2&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)</span>
+geocoded &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="dt">file =</span> <span class="st">&quot;geo_paises_OSM.rds&quot;</span>)</code></pre></div>
 <p>Con este procedimiento se consiguen una cantidad de 6073 registros para el procesamiento gráfico y geográfico.</p>
 </div>
 <div id="generacion-de-shapefile-y-csv-para-tratamiento-de-datos" class="section level3">
 <h3><span class="header-section-number">2.2.5</span> Generación de shapefile y csv para tratamiento de datos</h3>
 <p>En este paso procedemos a guardar el conjunto de datos obtenido en 2 formatos: RDS y CVS.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># En este punto pasamos a salvar en formato RDS</span>
+<span class="kw">saveRDS</span>(geocoded,<span class="st">&quot;twitter_users_geocoded2.rds&quot;</span>) 
+
+<span class="co"># En este punto pasamos a salvar en formato csv</span>
+<span class="kw">write.table</span>(geocoded, <span class="dt">file=</span><span class="st">&quot;twitter_users_geocoded2.csv&quot;</span>, 
+            <span class="dt">sep=</span><span class="st">&quot;,&quot;</span>, 
+            <span class="dt">row.names=</span><span class="ot">FALSE</span>)</code></pre></div>
 <p>Estos formatos los utilizaremos posteriormente para la presentación del mapa en ArcGis.</p>
 </div>
 <div id="presentacion-preliminar-mediante-r-de-un-mapa-de-los-puntos" class="section level3">
@@ -1501,11 +1615,34 @@ mapa</code></pre></div>
 <div id="carga-del-fichero-shapefile-paises_generalizados" class="section level3">
 <h3><span class="header-section-number">2.2.7</span> Carga del fichero shapefile: paises_generalizados</h3>
 <p>En este paso procedemos a la carga de los datos del shapefile # paises generaliados para realizar los cómputos posteriores:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Carga del fichero</span>
+paises_generalizados &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="st">&quot;./PAISES_GENERALIZADOS/paises_generalizados.shp&quot;</span>)
+
+<span class="co"># Convierte el dataframe geocoded_02 en un Spatial object</span>
+<span class="co">#coordinates(geocoded_02) &lt;- 2:1 </span>
+<span class="kw">coordinates</span>(geocoded) &lt;-<span class="st"> </span><span class="dv">2</span><span class="op">:</span><span class="dv">1</span> 
+
+<span class="co"># formato del objeto spatial</span>
+crs_geograficas =<span class="st">'+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'</span> 
+<span class="co">#geocoded_02@proj4string &lt;-CRS(crs_geograficas) </span>
+geocoded<span class="op">@</span>proj4string &lt;-<span class="kw">CRS</span>(crs_geograficas)
+paises_generalizados<span class="op">@</span>proj4string &lt;-<span class="st"> </span><span class="kw">CRS</span>(crs_geograficas)
+
+<span class="co"># Se crea un nuevo atributo 'contador' y lo inicializamos a 1</span>
+geocoded<span class="op">$</span>contador &lt;-<span class="st"> </span><span class="dv">1</span> 
+usuarios.pais &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="dt">x=</span>geocoded, 
+                           <span class="dt">by=</span>paises_generalizados, 
+                           <span class="dt">FUN=</span> length)</code></pre></div>
 </div>
 <div id="guardamos-el-conjunto-de-datos-en-formato-shp-exportacion-para-uso-en-arcgis" class="section level3">
 <h3><span class="header-section-number">2.2.8</span> Guardamos el conjunto de datos en formato SHP: exportación para uso en ArcGIS</h3>
 <p>Finalmente, procedemos a exportar el objeto <strong>‘paises_generalizados’</strong> a un shapefile para poder utilizarlo en la plataforma ArcGIS</p>
-<p>El resultado se encuentra en la dirección web:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">writeOGR</span>(paises_generalizados, 
+         <span class="st">&quot;./paises_OGM/paises_twitter.shp&quot;</span>, 
+         <span class="dt">driver=</span><span class="st">&quot;ESRI Shapefile&quot;</span>, 
+         <span class="dt">layer=</span><span class="st">&quot;paises&quot;</span>)</code></pre></div>
+<p>El resultado se encuentra en la dirección web: <a href="https://arcg.is/aWWvL" class="uri">https://arcg.is/aWWvL</a></p>
+<p>Tanto el código fuente como los resultados de la utilización del mismo se encuentran en un repositorio en <strong>GitHub</strong>, en la dirección: <a href="https://github.com/rgarciarui/geoTwitterRussia2018" class="uri">https://github.com/rgarciarui/geoTwitterRussia2018</a></p>
 </div>
 </div>
 </div>

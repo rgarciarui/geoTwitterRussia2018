@@ -3,6 +3,10 @@ title: "geoTwitter to #Russia2018"
 author: "Ricardo Garcia Ruiz"
 date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 output:
+  word_document:
+    toc: TRUE
+    highlight: default
+    toc_depth: 3
   pdf_document:
     highlight: tango
     keep_tex: yes
@@ -15,10 +19,6 @@ output:
     theme: cerulean
     highlight: tango
     always_allow_html: yes
-  word_document:
-    toc: TRUE
-    highlight: default
-    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -480,8 +480,10 @@ writeOGR(paises_generalizados,
          layer="paises")
 ```
 
-El resultado se encuentra en la dirección web: 
-
+El resultado se encuentra en la dirección web: https://arcg.is/aWWvL  
+  
+  
+Tanto el código fuente como los resultados de la utilización del mismo se encuentran en un repositorio en **GitHub**, en la dirección: https://github.com/rgarciarui/geoTwitterRussia2018
 
 
 
