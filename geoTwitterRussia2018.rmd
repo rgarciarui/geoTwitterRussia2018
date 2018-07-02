@@ -515,8 +515,49 @@ El procedimiento propuesto incluye los siguientes pasos:
 * Elaboración de los mapas requeridos. En ambos casos se podrán utilizar diferentes juegos de parámetros.
 
 
+## Resolución Ejercicio 2  
+
+### Descarga de la información indicada  
+
+Se procede a la descarga de los 3 ficheros que se indican en la práctica:
+
+* **“Calidad del aire. Tiempo real csv”**
+* **“Calidad del aire: estaciones de control”**
+* **“Distritos en formato geográfico en ETRS89”**
+
+Estos ficheor se guadan en el directorio 'contaminacion', desde donde se operará el código y los datos.
+
+### Lectura de los ficheros de datos con R
+
+En primer lugar tratamos el fichero **“Calidad del aire. Tiempo real csv”**. 
+
+```{r horario}
+
+# Carga del fichero “Calidad del aire. Tiempo real csv”
+medidas <- read.csv('horario.csv',header=TRUE,sep=';') 
+
+# Se filtran en una nueva variable unicamente los datos de 
+# dioxido de nitrogeno (valor = 8)
+medidas.no2 <- medidas[medidas$MAGNITUD==8,] 
+
+# Se añade una nueva variable y se inicializa sin valor
+medidas.no2$maxno2 <-NA 
 
 
+for (i in 1:nrow(medidas.no2)){ 
+  x<-c() # Vector c inicializado vacío
+  
+  # añade todos los valores de esas columnas para cada fila al vector (x)
+  for (j in 1:24){ 
+    # sprintf() genera los nombres de las columnas “H01”,”H02”,…,”H24”.
+    x[j]<-medidas.no2[i,paste(sprintf("H%02d", j)) ]
+  }
+  
+  # calcula y añade a la variable 'maxno2' el maximo de cda estación
+  medidas.no2$maxno2[i]<- max(x) 
+}
+
+```
 
 
-
+En segundo lugar realizamos el tratamiento 
