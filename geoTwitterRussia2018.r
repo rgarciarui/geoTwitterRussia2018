@@ -138,9 +138,15 @@ for( i in 1:nrow(addresses) ){
   Sys.sleep(1.2)
 }
 
+# salvamos la lista obtenida en el sistema
+save(geocoded_02, file = "geocoded_02.RData", 
+     compress = "bzip2", compression_level = 9)
 
 # Manejamos un buble en el que accederemos a la función rev_geocode_OSM()
-# suministrandoles uno a uno los parámetros par obtener el pais
+# suministrandoles uno a uno los parámetros par obtener el pais, ya que 
+# no tenemos en la petición original los datos de los paises.
+# Creamos un nuevo dataframe, geo_paises_OSM, que sera el que contenga
+# los datos finales con latitud, longitud y pais.
 
 geo_paises_OSM = data.frame(lat = double(),
                             long = double(),
@@ -149,7 +155,7 @@ geo_paises_OSM = data.frame(lat = double(),
                             code = character(), 
                             stringsAsFactors = FALSE)
 
-for( i in 3023:nrow(geocoded_02) ){
+for( i in 1:nrow(geocoded_02) ){
   
   # llamamos a la función rev_geocode_OSM() pero capturando los eventos de 
   # warnings que se puedan producir
@@ -201,19 +207,14 @@ saveRDS(geo_paises_OSM, file = "geo_paises_OSM.rds",
 # leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
 geocoded <- readRDS(file = "geo_paises_OSM.rds")
 
-
-
 #___________________________________________________________
 
-# salvamos la lista obtenida en el sistema
-save(geocoded_02, file = "geocoded_02.RData", 
-     compress = "bzip2", compression_level = 9)
-
-# En este punto pasamos a salvar en formato RDS
-saveRDS(geocoded_02,"twitter_users_geocoded2.rds") 
+# En este punto pasamos a salvar en formato RDS, este es el dataframe 
+# completo geo_paises_OSM
+saveRDS(geocoded,"twitter_users_geocoded2.rds") 
 
 # En este punto pasamos a salvar en formato csv
-write.table(geocoded_02, file="twitter_users_geocoded2.csv", 
+write.table(geocoded, file="twitter_users_geocoded2.csv", 
             sep=",", 
             row.names=FALSE)
 
@@ -221,7 +222,7 @@ write.table(geocoded_02, file="twitter_users_geocoded2.csv",
 # de twitts con sus coordenadas establecidas
 mapaMundi <- borders("world", colour="gray60", fill="gray60") 
 mapa <- ggplot() + mapaMundi 
-mapa <- mapa + geom_point(aes(x=geocoded_02$long, y=geocoded_02$lat),
+mapa <- mapa + geom_point(aes(x=geocoded$long, y=geocoded$lat),
                           color="red", size=1)
 mapa
 
@@ -233,20 +234,20 @@ paises_generalizados <- readOGR("./PAISES_GENERALIZADOS/paises_generalizados.shp
 
 # Convierte el dataframe geocoded_02 en un Spatial object
 #coordinates(geocoded_02) <- 2:1 
-coordinates(geo_paises_OSM) <- 2:1 
+coordinates(geocoded) <- 2:1 
 
 # formato del objeto spatial
 crs_geograficas ='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' 
 #geocoded_02@proj4string <-CRS(crs_geograficas) 
-geo_paises_OSM@proj4string <-CRS(crs_geograficas)
+geocoded@proj4string <-CRS(crs_geograficas)
 paises_generalizados@proj4string <- CRS(crs_geograficas)
 
 
-geo_paises_OSM$contador <- 1 
-usuarios.pais <- aggregate(x=geo_paises_OSM, 
+geocoded$contador <- 1 
+usuarios.pais <- aggregate(x=geocoded, 
                            by=paises_generalizados, 
                            FUN= length)
 
-
+#___________________________________________________________
 
 
