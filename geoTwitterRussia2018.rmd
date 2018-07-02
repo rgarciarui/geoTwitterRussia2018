@@ -137,11 +137,16 @@ tweetFrame <- twListToDF(searchResults)
 kable(summary(tweetFrame)[,1:8], caption = "Detalle del dataframe tweetFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
 
 kable(summary(tweetFrame)[,9:16], caption = "Detalle del dataframe tweetFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+rm(searchResults)# liberamos memoria
+gc()
+
 ```
 
 En este momento generamos una lista de los usuarios que han emitido twits sobre los datos obtenidos en **tweetFrame**:  
 
 ```{r get_userInfo, eval=FALSE}
+
 # lista (userInfo) a partir del listado de usuarios asociados a los tweets anteriores
 
 # como calcularla completa da un error persistente se calcula por
@@ -168,13 +173,16 @@ rm(userInfo2, userInfo3, userInfo4)
 
 ```{r save_userInfo, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
 # salvamos la lista obtenida en el sistema
-save(searchResults, file = "userInfo.RData")
+save(userInfo, file = "userInfo.RData")
 ```
 
 
 ```{r load_userInfo, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
 # leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
 load(file = "userInfo.RData")
+
+rm(tweetFrame)  #liberamos memoria
+gc()
 ```
 
 
@@ -191,6 +199,10 @@ userFrame <- twListToDF(userInfo)
 kable(summary(userFrame)[,1:8], caption = "Detalle del dataframe userFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
 
 kable(summary(userFrame)[,9:16], caption = "Detalle del dataframe userFrame", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+rm(userInfo)  # liberamos memoria
+gc()
+
 ```
 
 Finalmente, filtramos el dataframe de forma que mantengamos solo los datos de los usuarios de los que podamos obtener su localización geográfica:  
@@ -207,6 +219,10 @@ addresses <- userFrame[userFrame$location !="",]
 kable(summary(addresses)[,1:8], caption = "Detalle del dataframe addresses", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
 
 kable(summary(addresses)[,9:16], caption = "Detalle del dataframe addresses", digits = 3, padding = 2, align = 'r', longtable = TRUE) 
+
+rm(userFrame) # liberamos memoria
+gc()
+
 ```
 
 
@@ -349,9 +365,12 @@ saveRDS(geocoded, file = "geocoded.rds",
 
 # leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
 geocoded <- readRDS(file = "geo_paises_OSM.rds")
+
+rm(addresses)  #liberamos memoria
+gc()
 ```
 
-Con este procedimiento se consiguen una cantidad de `r nrow(geocoded_02)` registros para el procesamiento gráfico y geográfico.
+Con este procedimiento se consiguen una cantidad de `r nrow(geocoded)` registros para el procesamiento gráfico y geográfico.
 
 ### Generación de shapefile y csv para tratamiento de datos  
 
@@ -382,11 +401,18 @@ mapa <- mapa + geom_point(aes(x=geocoded$long, y=geocoded$lat),
 mapa
 ```
 
+```{r clear_memory_map, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
+
+rm(mapa, geocoded)
+gc()
+```
+
+
 ### Carga del fichero shapefile: paises_generalizados  
 
 En este paso procedemos a la carga de los datos del shapefile # paises generaliados para realizar los cómputos posteriores: 
 
-```{r get_paises_generalizados}
+```{r get_paises_generalizados, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
 
 # Carga del fichero
 paises_generalizados <- readOGR("./PAISES_GENERALIZADOS/paises_generalizados.shp")
@@ -414,7 +440,7 @@ usuarios.pais <- aggregate(x=geocoded,
 
 Finalmente, procedemos a exportar el objeto **'paises_generalizados'** a un shapefile para poder utilizarlo en la plataforma ArcGIS
 
-```{r save_paises_generalizados}
+```{r save_paises_generalizados, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
 
 writeOGR(paises_generalizados, 
          "./paises_OGM/paises_twitter.shp", 

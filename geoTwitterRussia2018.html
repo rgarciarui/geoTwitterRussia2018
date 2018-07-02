@@ -117,6 +117,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -146,7 +149,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">geoTwitter to #Russia2018</h1>
 <h4 class="author"><em>Ricardo Garcia Ruiz</em></h4>
-<h4 class="date"><em>30 de junio, 2018</em></h4>
+<h4 class="date"><em>2 de julio, 2018</em></h4>
 
 </div>
 
@@ -160,6 +163,12 @@ $(document).ready(function () {
 <li><a href="#resolucion-ejercicio-1"><span class="toc-section-number">2.2</span> Resolución Ejercicio 1</a><ul>
 <li><a href="#carga-de-los-elementos-de-acceso-a-twitter"><span class="toc-section-number">2.2.1</span> Carga de los elementos de acceso a Twitter</a></li>
 <li><a href="#acceso-a-twitter-desde-r-para-carga-de-twitts"><span class="toc-section-number">2.2.2</span> Acceso a Twitter desde R para carga de twitts</a></li>
+<li><a href="#tratamiento-de-los-datos-descargados-de-twitter"><span class="toc-section-number">2.2.3</span> Tratamiento de los datos descargados de Twitter</a></li>
+<li><a href="#busqueda-de-los-datos-geograficos-de-los-twitts-latitud-y-longitud"><span class="toc-section-number">2.2.4</span> Búsqueda de los datos geográficos de los twitts: latitud y longitud</a></li>
+<li><a href="#generacion-de-shapefile-y-csv-para-tratamiento-de-datos"><span class="toc-section-number">2.2.5</span> Generación de shapefile y csv para tratamiento de datos</a></li>
+<li><a href="#presentacion-preliminar-mediante-r-de-un-mapa-de-los-puntos"><span class="toc-section-number">2.2.6</span> Presentación preliminar mediante R de un mapa de los puntos</a></li>
+<li><a href="#carga-del-fichero-shapefile-paises_generalizados"><span class="toc-section-number">2.2.7</span> Carga del fichero shapefile: paises_generalizados</a></li>
+<li><a href="#guardamos-el-conjunto-de-datos-en-formato-shp-exportacion-para-uso-en-arcgis"><span class="toc-section-number">2.2.8</span> Guardamos el conjunto de datos en formato SHP: exportación para uso en ArcGIS</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#ejercicio-2-generacion-de-mapas-de-contaminacion"><span class="toc-section-number">3</span> Ejercicio 2: Generación de mapas de contaminación</a><ul>
@@ -212,177 +221,421 @@ searchTerm &lt;-<span class="st"> &quot;#Russia2018&quot;</span></code></pre></d
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Número máximo de twitts</span>
 searchResults &lt;-<span class="st"> </span><span class="kw">searchTwitter</span>(searchTerm, <span class="dt">n =</span> <span class="dv">15000</span>)</code></pre></div>
 <p>Además, como se ve, se pide la carga de 15000 twitts máximo.</p>
+</div>
+<div id="tratamiento-de-los-datos-descargados-de-twitter" class="section level3">
+<h3><span class="header-section-number">2.2.3</span> Tratamiento de los datos descargados de Twitter</h3>
 <p>A continuación convertimos la lista con los resultados obtenidos en un data.frame manejable en R:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># convierte la lista de resultados searchResult en un dataframe</span>
 tweetFrame &lt;-<span class="st"> </span><span class="kw">twListToDF</span>(searchResults)</code></pre></div>
 <table>
-<caption>Detalle del dataframe tweetFrame</caption>
+<caption>
+Detalle del dataframe tweetFrame
+</caption>
 <thead>
-<tr class="header">
-<th></th>
-<th align="right">text</th>
-<th align="right">favorited</th>
-<th align="right">favoriteCount</th>
-<th align="right">replyToSN</th>
-<th align="right">created</th>
-<th align="right">truncated</th>
-<th align="right">replyToSID</th>
-<th align="right">id</th>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+<pre><code> text &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+favorited
+</th>
+<th style="text-align:right;">
+favoriteCount
+</th>
+<th style="text-align:right;">
+replyToSN
+</th>
+<th style="text-align:right;">
+<pre><code>created &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+truncated
+</th>
+<th style="text-align:right;">
+replyToSID
+</th>
+<th style="text-align:right;">
+<pre><code>  id &lt;/th&gt;</code></pre>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td></td>
-<td align="right">Length:15000</td>
-<td align="right">Mode :logical</td>
-<td align="right">Min. : 0,000</td>
-<td align="right">Length:15000</td>
-<td align="right">Min. :2018-06-28 15:20:36</td>
-<td align="right">Mode :logical</td>
-<td align="right">Length:15000</td>
-<td align="right">Length:15000</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Min. : 0,000
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Min. :2018-06-28 15:20:36
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">Class :character</td>
-<td align="right">FALSE:15000</td>
-<td align="right">1st Qu.: 0,000</td>
-<td align="right">Class :character</td>
-<td align="right">1st Qu.:2018-06-28 17:38:44</td>
-<td align="right">FALSE:11157</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+FALSE:15000
+</td>
+<td style="text-align:right;">
+1st Qu.: 0,000
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.:2018-06-28 17:38:44
+</td>
+<td style="text-align:right;">
+FALSE:11157
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">Mode :character</td>
-<td align="right">NA</td>
-<td align="right">Median : 0,000</td>
-<td align="right">Mode :character</td>
-<td align="right">Median :2018-06-28 20:56:39</td>
-<td align="right">TRUE :3843</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Median : 0,000
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median :2018-06-28 20:56:39
+</td>
+<td style="text-align:right;">
+TRUE :3843
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Mean : 1,421</td>
-<td align="right">NA</td>
-<td align="right">Mean :2018-06-29 01:08:13</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 1,421
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean :2018-06-29 01:08:13
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.: 0,000</td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.:2018-06-29 09:29:42</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 0,000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.:2018-06-29 09:29:42
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Max. :2420,000</td>
-<td align="right">NA</td>
-<td align="right">Max. :2018-06-29 18:31:38</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :2420,000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :2018-06-29 18:31:38
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
 </tbody>
 </table>
 <table>
-<caption>Detalle del dataframe tweetFrame</caption>
+<caption>
+Detalle del dataframe tweetFrame
+</caption>
 <thead>
-<tr class="header">
-<th></th>
-<th align="right">replyToUID</th>
-<th align="right">statusSource</th>
-<th align="right">screenName</th>
-<th align="right">retweetCount</th>
-<th align="right">isRetweet</th>
-<th align="right">retweeted</th>
-<th align="right">longitude</th>
-<th align="right">latitude</th>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+replyToUID
+</th>
+<th style="text-align:right;">
+statusSource
+</th>
+<th style="text-align:right;">
+screenName
+</th>
+<th style="text-align:right;">
+retweetCount
+</th>
+<th style="text-align:right;">
+isRetweet
+</th>
+<th style="text-align:right;">
+retweeted
+</th>
+<th style="text-align:right;">
+longitude
+</th>
+<th style="text-align:right;">
+latitude
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td></td>
-<td align="right">Length:15000</td>
-<td align="right">Length:15000</td>
-<td align="right">Length:15000</td>
-<td align="right">Min. : 0,0</td>
-<td align="right">Mode :logical</td>
-<td align="right">Mode :logical</td>
-<td align="right">Length:15000</td>
-<td align="right">Length:15000</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Min. : 0,0
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
+<td style="text-align:right;">
+Length:15000
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">1st Qu.: 0,0</td>
-<td align="right">FALSE:7073</td>
-<td align="right">FALSE:15000</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.: 0,0
+</td>
+<td style="text-align:right;">
+FALSE:7073
+</td>
+<td style="text-align:right;">
+FALSE:15000
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Median : 2,0</td>
-<td align="right">TRUE :7927</td>
-<td align="right">NA</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median : 2,0
+</td>
+<td style="text-align:right;">
+TRUE :7927
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Mean : 125,5</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 125,5
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.: 39,0</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 39,0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Max. :23244,0</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :23244,0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
 </tbody>
 </table>
+<pre><code>      used  (Mb) gc trigger   (Mb) max used   (Mb)</code></pre>
+<p>Ncells 3317860 177,2 52981520 2829,6 54824974 2928,0 Vcells 5561225 42,5 21963886 167,6 21963604 167,6</p>
 <p>En este momento generamos una lista de los usuarios que han emitido twits sobre los datos obtenidos en <strong>tweetFrame</strong>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># lista (userInfo) a partir del listado de usuarios asociados a los tweets anteriores</span>
 
@@ -404,177 +657,1304 @@ userInfo =<span class="st"> </span><span class="kw">c</span>(userInfo, userInfo2
 
 <span class="co"># borramos las variables no necesarias</span>
 <span class="kw">rm</span>(userInfo2, userInfo3, userInfo4)</code></pre></div>
+<pre><code>       used   (Mb) gc trigger   (Mb) max used   (Mb)</code></pre>
+<p>Ncells 51203856 2734,6 97978015 5232,6 54824974 2928,0 Vcells 18657838 142,4 26436663 201,7 21963604 167,6</p>
 <p>Ahora pasamos a convertir esta lista en un dataframe que podamos utilizar con mayor comodidad en los cálculos posteriores:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Convertimos la lista en dataFrame</span>
 userFrame &lt;-<span class="st"> </span><span class="kw">twListToDF</span>(userInfo)</code></pre></div>
 <table>
-<caption>Detalle del dataframe userFrame</caption>
+<caption>
+Detalle del dataframe userFrame
+</caption>
 <thead>
-<tr class="header">
-<th></th>
-<th align="right">description</th>
-<th align="right">statusesCount</th>
-<th align="right">followersCount</th>
-<th align="right">favoritesCount</th>
-<th align="right">friendsCount</th>
-<th align="right">url</th>
-<th align="right">name</th>
-<th align="right">created</th>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+description
+</th>
+<th style="text-align:right;">
+statusesCount
+</th>
+<th style="text-align:right;">
+followersCount
+</th>
+<th style="text-align:right;">
+favoritesCount
+</th>
+<th style="text-align:right;">
+friendsCount
+</th>
+<th style="text-align:right;">
+<pre><code> url &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code> name &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code>created &lt;/th&gt;</code></pre>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td></td>
-<td align="right">Length:12117</td>
-<td align="right">Min. : 0</td>
-<td align="right">Min. : 0</td>
-<td align="right">Min. : 0</td>
-<td align="right">Min. : 0</td>
-<td align="right">Length:12117</td>
-<td align="right">Length:12117</td>
-<td align="right">Min. :2006-11-30 09:18:03</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Min. :2006-11-30 09:18:03
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">Class :character</td>
-<td align="right">1st Qu.: 1298</td>
-<td align="right">1st Qu.: 113</td>
-<td align="right">1st Qu.: 242</td>
-<td align="right">1st Qu.: 170</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">1st Qu.:2011-01-14 18:12:16</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.: 1298
+</td>
+<td style="text-align:right;">
+1st Qu.: 113
+</td>
+<td style="text-align:right;">
+1st Qu.: 242
+</td>
+<td style="text-align:right;">
+1st Qu.: 170
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.:2011-01-14 18:12:16
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">Mode :character</td>
-<td align="right">Median : 5965</td>
-<td align="right">Median : 370</td>
-<td align="right">Median : 1424</td>
-<td align="right">Median : 440</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Median :2012-11-16 07:38:11</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median : 5965
+</td>
+<td style="text-align:right;">
+Median : 370
+</td>
+<td style="text-align:right;">
+Median : 1424
+</td>
+<td style="text-align:right;">
+Median : 440
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median :2012-11-16 07:38:11
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">Mean : 27078</td>
-<td align="right">Mean : 11816</td>
-<td align="right">Mean : 10191</td>
-<td align="right">Mean : 1167</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Mean :2013-05-29 02:28:37</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 27078
+</td>
+<td style="text-align:right;">
+Mean : 11816
+</td>
+<td style="text-align:right;">
+Mean : 10191
+</td>
+<td style="text-align:right;">
+Mean : 1167
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean :2013-05-29 02:28:37
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.: 23036</td>
-<td align="right">3rd Qu.: 1253</td>
-<td align="right">3rd Qu.: 6745</td>
-<td align="right">3rd Qu.: 1022</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.:2016-01-03 11:26:25</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 23036
+</td>
+<td style="text-align:right;">
+3rd Qu.: 1253
+</td>
+<td style="text-align:right;">
+3rd Qu.: 6745
+</td>
+<td style="text-align:right;">
+3rd Qu.: 1022
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.:2016-01-03 11:26:25
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">Max. :2187550</td>
-<td align="right">Max. :10865141</td>
-<td align="right">Max. :681598</td>
-<td align="right">Max. :245943</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Max. :2018-06-29 18:22:56</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :2187550
+</td>
+<td style="text-align:right;">
+Max. :10865141
+</td>
+<td style="text-align:right;">
+Max. :681598
+</td>
+<td style="text-align:right;">
+Max. :245943
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :2018-06-29 18:22:56
+</td>
 </tr>
 </tbody>
 </table>
 <table>
-<caption>Detalle del dataframe userFrame</caption>
+<caption>
+Detalle del dataframe userFrame
+</caption>
 <thead>
-<tr class="header">
-<th></th>
-<th align="right">protected</th>
-<th align="right">verified</th>
-<th align="right">screenName</th>
-<th align="right">location</th>
-<th align="right">lang</th>
-<th align="right">id</th>
-<th align="right">listedCount</th>
-<th align="right">followRequestSent</th>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+protected
+</th>
+<th style="text-align:right;">
+verified
+</th>
+<th style="text-align:right;">
+screenName
+</th>
+<th style="text-align:right;">
+location
+</th>
+<th style="text-align:right;">
+<pre><code> lang &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code>  id &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+listedCount
+</th>
+<th style="text-align:right;">
+followRequestSent
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td></td>
-<td align="right">Mode :logical</td>
-<td align="right">Mode :logical</td>
-<td align="right">Length:12117</td>
-<td align="right">Length:12117</td>
-<td align="right">Length:12117</td>
-<td align="right">Length:12117</td>
-<td align="right">Min. : 0,00</td>
-<td align="right">Mode :logical</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Length:12117
+</td>
+<td style="text-align:right;">
+Min. : 0,00
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">FALSE:12108</td>
-<td align="right">FALSE:11745</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">Class :character</td>
-<td align="right">1st Qu.: 0,00</td>
-<td align="right">FALSE:12117</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+FALSE:12108
+</td>
+<td style="text-align:right;">
+FALSE:11745
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.: 0,00
+</td>
+<td style="text-align:right;">
+FALSE:12117
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">TRUE :9</td>
-<td align="right">TRUE :372</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Mode :character</td>
-<td align="right">Median : 5,00</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+TRUE :9
+</td>
+<td style="text-align:right;">
+TRUE :372
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median : 5,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Mean : 67,56</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 67,56
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="odd">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3rd Qu.: 24,00</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 24,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
-<tr class="even">
-<td></td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">Max. :21506,00</td>
-<td align="right">NA</td>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :21506,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
 </tr>
 </tbody>
 </table>
+<pre><code>      used  (Mb) gc trigger   (Mb) max used   (Mb)</code></pre>
+<p>Ncells 3365591 179,8 78382412 4186,1 81058888 4329,1 Vcells 5786241 44,2 25443196 194,2 31802028 242,7</p>
+<p>Finalmente, filtramos el dataframe de forma que mantengamos solo los datos de los usuarios de los que podamos obtener su localización geográfica:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filtramos el dataFrame obteniendo el listado de todos aquellos usuarios </span>
+<span class="co"># que introdujeron información relativa a su localización</span>
+addresses &lt;-<span class="st"> </span>userFrame[userFrame<span class="op">$</span>location <span class="op">!=</span><span class="st">&quot;&quot;</span>,]</code></pre></div>
+<table>
+<caption>
+Detalle del dataframe addresses
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+description
+</th>
+<th style="text-align:right;">
+statusesCount
+</th>
+<th style="text-align:right;">
+followersCount
+</th>
+<th style="text-align:right;">
+favoritesCount
+</th>
+<th style="text-align:right;">
+friendsCount
+</th>
+<th style="text-align:right;">
+<pre><code> url &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code> name &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code>created &lt;/th&gt;</code></pre>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Min. : 0
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Min. :2006-11-30 09:18:03
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.: 1679
+</td>
+<td style="text-align:right;">
+1st Qu.: 155
+</td>
+<td style="text-align:right;">
+1st Qu.: 293
+</td>
+<td style="text-align:right;">
+1st Qu.: 208
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.:2010-09-21 16:07:27
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median : 7053
+</td>
+<td style="text-align:right;">
+Median : 458
+</td>
+<td style="text-align:right;">
+Median : 1664
+</td>
+<td style="text-align:right;">
+Median : 516
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median :2012-06-03 07:03:16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 27130
+</td>
+<td style="text-align:right;">
+Mean : 13672
+</td>
+<td style="text-align:right;">
+Mean : 10321
+</td>
+<td style="text-align:right;">
+Mean : 1300
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean :2013-01-31 00:30:53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 24709
+</td>
+<td style="text-align:right;">
+3rd Qu.: 1459
+</td>
+<td style="text-align:right;">
+3rd Qu.: 7296
+</td>
+<td style="text-align:right;">
+3rd Qu.: 1164
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.:2015-07-20 21:04:21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :1195425
+</td>
+<td style="text-align:right;">
+Max. :10865141
+</td>
+<td style="text-align:right;">
+Max. :644352
+</td>
+<td style="text-align:right;">
+Max. :245943
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :2018-06-29 16:03:51
+</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>
+Detalle del dataframe addresses
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+protected
+</th>
+<th style="text-align:right;">
+verified
+</th>
+<th style="text-align:right;">
+screenName
+</th>
+<th style="text-align:right;">
+location
+</th>
+<th style="text-align:right;">
+<pre><code> lang &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+<pre><code>  id &lt;/th&gt;</code></pre>
+<th style="text-align:right;">
+listedCount
+</th>
+<th style="text-align:right;">
+followRequestSent
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Length:8724
+</td>
+<td style="text-align:right;">
+Min. : 0,00
+</td>
+<td style="text-align:right;">
+Mode :logical
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+FALSE:8717
+</td>
+<td style="text-align:right;">
+FALSE:8426
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+Class :character
+</td>
+<td style="text-align:right;">
+1st Qu.: 1,00
+</td>
+<td style="text-align:right;">
+FALSE:8724
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+TRUE :7
+</td>
+<td style="text-align:right;">
+TRUE :298
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Mode :character
+</td>
+<td style="text-align:right;">
+Median : 7,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Mean : 68,23
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3rd Qu.: 28,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+Max. :11726,00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<pre><code>      used  (Mb) gc trigger   (Mb) max used   (Mb)</code></pre>
+<p>Ncells 3354041 179,2 62705929 3348,9 81058888 4329,1 Vcells 5631663 43,0 20354556 155,3 31802028 242,7</p>
+</div>
+<div id="busqueda-de-los-datos-geograficos-de-los-twitts-latitud-y-longitud" class="section level3">
+<h3><span class="header-section-number">2.2.4</span> Búsqueda de los datos geográficos de los twitts: latitud y longitud</h3>
+<p>Gestionamos la geo localización de longitud y latitud de los twitts que tienen informado correctamente (o al menos que se pueda utilizar en la localización) el pais/localidad en el dataframe ‘addresses’.</p>
+<p>Para ello consultamos la dirección de internet <a href="http://nominatim.openstreetmap.org" class="uri">http://nominatim.openstreetmap.org</a> ya que otras alternativas eran menos fiables para consultar todos los twitts de nuestra lista.</p>
+<p>De nuestro dataframe utilizamos el campo ‘location’ y utilizando la función geocode_OSM() nos da como retorno la longitud y latitud de cada twitt:</p>
+<p>Manejamos un loop en el que accederemos a la función <strong>rev_geocode_OSM()</strong> suministrandoles uno a uno los parámetros par obtener el pais, ya que no tenemos en la petición original los datos de los paises.</p>
+<p>Creamos un nuevo dataframe, geo_paises_OSM, que sera el que contenga los datos finales con latitud, longitud y país.</p>
+<pre><code>      used  (Mb) gc trigger   (Mb) max used   (Mb)</code></pre>
+<p>Ncells 3314922 177,1 50164743 2679,1 81058888 4329,1 Vcells 5213526 39,8 20354556 155,3 31802028 242,7</p>
+<p>Con este procedimiento se consiguen una cantidad de 6073 registros para el procesamiento gráfico y geográfico.</p>
+</div>
+<div id="generacion-de-shapefile-y-csv-para-tratamiento-de-datos" class="section level3">
+<h3><span class="header-section-number">2.2.5</span> Generación de shapefile y csv para tratamiento de datos</h3>
+<p>En este paso procedemos a guardar el conjunto de datos obtenido en 2 formatos: RDS y CVS.</p>
+<p>Estos formatos los utilizaremos posteriormente para la presentación del mapa en ArcGis.</p>
+</div>
+<div id="presentacion-preliminar-mediante-r-de-un-mapa-de-los-puntos" class="section level3">
+<h3><span class="header-section-number">2.2.6</span> Presentación preliminar mediante R de un mapa de los puntos</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># De manera general creamos un mapa de visualización del conjunto de datos</span>
+<span class="co"># de twitts con sus coordenadas establecidas</span>
+mapaMundi &lt;-<span class="st"> </span><span class="kw">borders</span>(<span class="st">&quot;world&quot;</span>, <span class="dt">colour=</span><span class="st">&quot;gray60&quot;</span>, <span class="dt">fill=</span><span class="st">&quot;gray60&quot;</span>) 
+mapa &lt;-<span class="st"> </span><span class="kw">ggplot</span>() <span class="op">+</span><span class="st"> </span>mapaMundi 
+mapa &lt;-<span class="st"> </span>mapa <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x=</span>geocoded<span class="op">$</span>long, <span class="dt">y=</span>geocoded<span class="op">$</span>lat),
+                          <span class="dt">color=</span><span class="st">&quot;red&quot;</span>, <span class="dt">size=</span><span class="dv">1</span>)
+mapa</code></pre></div>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+</div>
+<div id="carga-del-fichero-shapefile-paises_generalizados" class="section level3">
+<h3><span class="header-section-number">2.2.7</span> Carga del fichero shapefile: paises_generalizados</h3>
+<p>En este paso procedemos a la carga de los datos del shapefile # paises generaliados para realizar los cómputos posteriores:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Carga del fichero</span>
+paises_generalizados &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="st">&quot;./PAISES_GENERALIZADOS/paises_generalizados.shp&quot;</span>)</code></pre></div>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;F:\Users\Ricardo\Documents\Trabajo y Becas\R-projects\geoTwitterRussia2018\PAISES_GENERALIZADOS\paises_generalizados.shp&quot;, layer: &quot;paises_generalizados&quot;
+## with 248 features
+## It has 15 fields
+## Integer64 fields read as strings:  OBJECTID AREA POP2005 OBJ_IND</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Convierte el dataframe geocoded_02 en un Spatial object</span>
+<span class="co">#coordinates(geocoded_02) &lt;- 2:1 </span>
+<span class="kw">coordinates</span>(geocoded) &lt;-<span class="st"> </span><span class="dv">2</span><span class="op">:</span><span class="dv">1</span> 
+
+<span class="co"># formato del objeto spatial</span>
+crs_geograficas =<span class="st">'+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'</span> 
+<span class="co">#geocoded_02@proj4string &lt;-CRS(crs_geograficas) </span>
+geocoded<span class="op">@</span>proj4string &lt;-<span class="kw">CRS</span>(crs_geograficas)
+paises_generalizados<span class="op">@</span>proj4string &lt;-<span class="st"> </span><span class="kw">CRS</span>(crs_geograficas)
+
+<span class="co"># Se crea un nuevo atributo 'contador' y lo inicializamos a 1</span>
+geocoded<span class="op">$</span>contador &lt;-<span class="st"> </span><span class="dv">1</span> 
+usuarios.pais &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="dt">x=</span>geocoded, 
+                           <span class="dt">by=</span>paises_generalizados, 
+                           <span class="dt">FUN=</span> length)</code></pre></div>
+<pre><code>## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated
+
+## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = 7L): invalid factor level, NA
+## generated</code></pre>
+</div>
+<div id="guardamos-el-conjunto-de-datos-en-formato-shp-exportacion-para-uso-en-arcgis" class="section level3">
+<h3><span class="header-section-number">2.2.8</span> Guardamos el conjunto de datos en formato SHP: exportación para uso en ArcGIS</h3>
+<p>Finalmente, procedemos a exportar el objeto <strong>‘paises_generalizados’</strong> a un shapefile para poder utilizarlo en la plataforma ArcGIS</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">writeOGR</span>(paises_generalizados, 
+         <span class="st">&quot;./paises_OGM/paises_twitter.shp&quot;</span>, 
+         <span class="dt">driver=</span><span class="st">&quot;ESRI Shapefile&quot;</span>, 
+         <span class="dt">layer=</span><span class="st">&quot;paises&quot;</span>)</code></pre></div>
+<p>El resultado se encuentra en la dirección web:</p>
 </div>
 </div>
 </div>
