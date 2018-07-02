@@ -259,7 +259,7 @@ crs_geograficas ='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 geocoded@proj4string <-CRS(crs_geograficas)
 paises_generalizados@proj4string <- CRS(crs_geograficas)
 
-
+# Se crea un nuevo atributo 'contador' y lo inicializamos a 1
 geocoded$contador <- 1 
 usuarios.pais <- aggregate(x=geocoded, 
                            by=paises_generalizados, 
@@ -267,4 +267,10 @@ usuarios.pais <- aggregate(x=geocoded,
 
 #___________________________________________________________
 
+# Exportamos el objeto 'paises_generalizados' a un shapefile 
+# para poder utilizarlo en la plataforma ArcGIS
 
+writeOGR(paises_generalizados, 
+         "./paises_OGM/paises_twitter.shp", 
+         driver="ESRI Shapefile", 
+         layer="paises")

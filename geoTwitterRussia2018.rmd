@@ -384,13 +384,45 @@ mapa
 
 ### Carga del fichero shapefile: paises_generalizados  
 
+En este paso procedemos a la carga de los datos del shapefile # paises generaliados para realizar los cómputos posteriores: 
+
+```{r get_paises_generalizados}
+
+# Carga del fichero
+paises_generalizados <- readOGR("./PAISES_GENERALIZADOS/paises_generalizados.shp")
+
+# Convierte el dataframe geocoded_02 en un Spatial object
+#coordinates(geocoded_02) <- 2:1 
+coordinates(geocoded) <- 2:1 
+
+# formato del objeto spatial
+crs_geograficas ='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' 
+#geocoded_02@proj4string <-CRS(crs_geograficas) 
+geocoded@proj4string <-CRS(crs_geograficas)
+paises_generalizados@proj4string <- CRS(crs_geograficas)
+
+# Se crea un nuevo atributo 'contador' y lo inicializamos a 1
+geocoded$contador <- 1 
+usuarios.pais <- aggregate(x=geocoded, 
+                           by=paises_generalizados, 
+                           FUN= length)
+```
 
 
 
+### Guardamos el conjunto de datos en formato SHP: exportación para uso en ArcGIS
 
+Finalmente, procedemos a exportar el objeto **'paises_generalizados'** a un shapefile para poder utilizarlo en la plataforma ArcGIS
 
+```{r save_paises_generalizados}
 
+writeOGR(paises_generalizados, 
+         "./paises_OGM/paises_twitter.shp", 
+         driver="ESRI Shapefile", 
+         layer="paises")
+```
 
+El resultado se encuentra en la dirección web: 
 
 
 
