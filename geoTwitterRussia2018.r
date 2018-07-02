@@ -24,12 +24,16 @@ setup_twitter_oauth(consumer_key,consumer_secret,
 searchTerm <- "#Russia2018"
 #searchTerm <- "#world cup+#Russia2018"
 
+#___________________________________________________________
+
 # Número máximo de twitts
 searchResults <- searchTwitter(searchTerm, n = 15000)
 
 # salvamos la lista obtenida en el sistema
 save(searchResults, file = "searchResults.RData", 
      compress = "bzip2", compression_level = 9)
+
+#___________________________________________________________
 
 # convierte la lista de resultados searchResult en un dataframe
 tweetFrame <- twListToDF(searchResults)
@@ -66,11 +70,15 @@ rm(userInfo2, userInfo3, userInfo4)
 save(userInfo, file = "userInfo.RData", 
      compress = "bzip2", compression_level = 9)
 
+#___________________________________________________________
+
 # Convertimos la lista en dataFrame
 userFrame <- twListToDF(userInfo)
 
 # summario del dataframe
 summary(userFrame)
+
+#___________________________________________________________
 
 # Filtramos el dataFrame obteniendo el listado de todos aquellos usuarios 
 # que introdujeron información relativa a su localización
@@ -82,6 +90,8 @@ summary(addresses)
 # salvamos la lista obtenida en el sistema
 save(addresses, file = "addresses.RData", 
      compress = "bzip2", compression_level = 9)
+
+#___________________________________________________________
 
 # Gestionamos la geo localización de longitud y latitud de los twitts que tienen
 # informado correctamente (o al menos que se pueda utilizar en la localización)
@@ -95,7 +105,7 @@ save(addresses, file = "addresses.RData",
 # Creamos un dataframe vacio para guardar todos los datos finales obtenidos
 geocoded_02 <- data.frame()
 
-# Manejamos un buble en el que accederemos a la función geocode_OSM()
+# Manejamos un loop en el que accederemos a la función geocode_OSM()
 # suministrandoles uno a uno los parámetros
 for( i in 1:nrow(addresses) ){
   
@@ -142,12 +152,15 @@ for( i in 1:nrow(addresses) ){
 save(geocoded_02, file = "geocoded_02.RData", 
      compress = "bzip2", compression_level = 9)
 
-# Manejamos un buble en el que accederemos a la función rev_geocode_OSM()
+#___________________________________________________________
+
+# Manejamos un loop en el que accederemos a la función rev_geocode_OSM()
 # suministrandoles uno a uno los parámetros par obtener el pais, ya que 
 # no tenemos en la petición original los datos de los paises.
 # Creamos un nuevo dataframe, geo_paises_OSM, que sera el que contenga
 # los datos finales con latitud, longitud y pais.
 
+# Dataframe final con los datos completos que utilizaremos 
 geo_paises_OSM = data.frame(lat = double(),
                             long = double(),
                             screenName = character(),
@@ -218,6 +231,8 @@ write.table(geocoded, file="twitter_users_geocoded2.csv",
             sep=",", 
             row.names=FALSE)
 
+#___________________________________________________________
+
 # De manera general creamos un mapa de visualización del conjunto de datos
 # de twitts con sus coordenadas establecidas
 mapaMundi <- borders("world", colour="gray60", fill="gray60") 
@@ -225,6 +240,8 @@ mapa <- ggplot() + mapaMundi
 mapa <- mapa + geom_point(aes(x=geocoded$long, y=geocoded$lat),
                           color="red", size=1)
 mapa
+
+#___________________________________________________________
 
 # En este paso procedemos a la carga de los datos del shapefile
 # paises generaliados para realizar los computos posteriores
