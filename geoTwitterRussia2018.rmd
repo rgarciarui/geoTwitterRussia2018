@@ -268,14 +268,14 @@ for( i in 1:nrow(addresses) ){
 
 ```{r save_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE, eval=FALSE}
 # salvamos la lista obtenida en el sistema
-save(geocoded, file = "geocoded.RData", 
-     compress = "bzip2", compression_level = 9)
+saveRDS(geocoded, file = "geocoded.rds", 
+     compress = "bzip2")
 ```
 
 
 ```{r load_geocoded, echo=FALSE, cache=FALSE, results = 'asis', message=FALSE, comment=FALSE, warning=FALSE}
 # leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
-geocoded = load(file = "geocoded_02.RData")
+geocoded = readRDS(file = "geocoded_02.rds")
 ```
 
 Con este procedimiento se consiguen una cantidad de `r nrow(geocoded_02)` registros para el procesamiento gráfico y geográfico.

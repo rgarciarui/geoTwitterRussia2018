@@ -6,6 +6,8 @@ library(tmap)
 library(tmaptools)
 library(stringr)
 library(stringi)
+library(rgdal)
+library(sp)
 
 # variables de acceso a Twitter mediante R
 consumer_key <- "xGVFIywgtmdVq6NoN2FhXybqQ"
@@ -136,6 +138,73 @@ for( i in 1:nrow(addresses) ){
   Sys.sleep(1.2)
 }
 
+
+# Manejamos un buble en el que accederemos a la función rev_geocode_OSM()
+# suministrandoles uno a uno los parámetros par obtener el pais
+
+geo_paises_OSM = data.frame(lat = double(),
+                            long = double(),
+                            screenName = character(),
+                            pais = character(), 
+                            code = character(), 
+                            stringsAsFactors = FALSE)
+
+for( i in 3023:nrow(geocoded_02) ){
+  
+  # llamamos a la función rev_geocode_OSM() pero capturando los eventos de 
+  # warnings que se puedan producir
+  
+  # creamos un objeto SpatialPoints para suministrarlo a la función 
+  # rev_geocode_OSM() con formato long:lat
+  sp01 = SpatialPoints(coords = cbind(geocoded_02$long[i], geocoded_02$lat[i]),
+                       proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+  result = try(
+    rev_geocode_OSM(x=sp01, server = "http://nominatim.openstreetmap.org")
+  )
+  
+  # si no se ha producido un warning de tipo "try_error", si se produce se descarta
+  # el usuario
+  if(class(result) != "try-error"){
+    
+    # Si el valor obtenido en resultado fuera nulo se descarta
+    if(!is.null(result)){
+      
+      # añadimos los datos a nuestro dataframe de salida
+      geo_paises_OSM <- rbind(geo_paises_OSM, 
+                              data.frame(geocoded_02$lat[i],
+                                         geocoded_02$long[i],
+                                         geocoded_02$screenName[i],
+                                         result[[1]]$country, 
+                                         result[[1]]$country_code))
+    }
+  } else{
+    # añadimos los datos a nuestro dataframe de salida
+    geo_paises_OSM <- rbind(geo_paises_OSM, 
+                            data.frame(NULL,NULL,NULL, NULL, NULL))   
+  }
+  # en este punto manejamos el tiempo de retardo para cada llamada
+  # a http://nominatim.openstreetmap.org, ya que si las llamadas no tienen
+  # un retrado de al manos un segundo, la pagina de nominatim nos expulsa
+  # y corta la comunicación y las consultas. Se introduce un retraso de 
+  # 1.2 segundos por precaución
+  Sys.sleep(1.2)
+}
+
+# colocamos los nombres correctos en el dataframe
+colnames(geo_paises_OSM) <- c("lat", "long", "screenName", "country", "country_code")
+geo_paises_OSM$country_code <- toupper(geo_paises_OSM$country_code)
+
+# salvamos la lista obtenida en el sistema
+saveRDS(geo_paises_OSM, file = "geo_paises_OSM.rds", 
+        compress = "bzip2")
+
+# leemos la lista compilada directamente (RMarkdown no lo permite de otra forma)
+geocoded <- readRDS(file = "geo_paises_OSM.rds")
+
+
+
+#___________________________________________________________
+
 # salvamos la lista obtenida en el sistema
 save(geocoded_02, file = "geocoded_02.RData", 
      compress = "bzip2", compression_level = 9)
@@ -156,11 +225,27 @@ mapa <- mapa + geom_point(aes(x=geocoded_02$long, y=geocoded_02$lat),
                           color="red", size=1)
 mapa
 
+# En este paso procedemos a la carga de los datos del shapefile
+# paises generaliados para realizar los computos posteriores
+
+# Carga del fichero
+paises_generalizados <- readOGR("./PAISES_GENERALIZADOS/paises_generalizados.shp")
+
+# Convierte el dataframe geocoded_02 en un Spatial object
+#coordinates(geocoded_02) <- 2:1 
+coordinates(geo_paises_OSM) <- 2:1 
+
+# formato del objeto spatial
+crs_geograficas ='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' 
+#geocoded_02@proj4string <-CRS(crs_geograficas) 
+geo_paises_OSM@proj4string <-CRS(crs_geograficas)
+paises_generalizados@proj4string <- CRS(crs_geograficas)
 
 
-
-
-
+geo_paises_OSM$contador <- 1 
+usuarios.pais <- aggregate(x=geo_paises_OSM, 
+                           by=paises_generalizados, 
+                           FUN= length)
 
 
 
