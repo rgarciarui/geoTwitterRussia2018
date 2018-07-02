@@ -103,8 +103,6 @@ limite.raster <- raster(limite.madrid, res=0.001)
 
 
 coordinates(medidas.geo.simp) <- 3:4
-
-
 medidas.geo.simp@proj4string <- limite.madrid@proj4string
 
 

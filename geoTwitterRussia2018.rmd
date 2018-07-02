@@ -1,18 +1,8 @@
 ---
-title: "geoTwitter to #Russia2018"
+title: "Practica final: Análisis de datos geoespaciales"
 author: "Ricardo Garcia Ruiz"
 date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 output:
-  pdf_document:
-    highlight: tango
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 3
-  word_document:
-    toc: TRUE
-    highlight: default
-    toc_depth: 3
   html_document:
     toc: TRUE
     number_sections: true
@@ -20,6 +10,16 @@ output:
     theme: cerulean
     highlight: tango
     always_allow_html: yes
+  word_document:
+    toc: TRUE
+    highlight: default
+    toc_depth: 3
+  pdf_document:
+    highlight: tango
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -649,10 +649,56 @@ limite.raster <- raster(limite.madrid, res=0.001)
 ```
 
 
+Ahora procedemos a trasnformar el dataframe **'medidas.geo.simp'** en un SpatialPolygons dataframe:
+
+```{r to_spatial}
+coordinates(medidas.geo.simp) <- 3:4
+medidas.geo.simp@proj4string <- limite.madrid@proj4string
+```
+
+### Creación del mapa mediante IDW  
+
+En esta siguiente fase procedemos a la construcción del objeto de visualización mediante IDW:  
+
+```{r plot_idw}
+# interpolación usando IDW
+gstat.parametros <- gstat(formula = maxno2~1, 
+                          locations=medidas.geo.simp,set = list(idp = 2)) 
+no2.idw <- interpolate(limite.raster, gstat.parametros)
+no2.idwr <- raster::mask(no2.idw,limite.madrid) 
+plot(no2.idwr)
+```
 
 
 
 
+### Creación del mapa mediante krigeaje 
+
+Con el fin de conseguir el mapa interpolado por krigeaje, en primer lugar obtenmos el semivariograma. Aplicamos el valor 0.5 para el parámetro width y obtenemos el siguiente variograma teórico:  
+
+```{r plot_variograma}
+# interpolado por krigeaje
+gstat.parametros <- gstat(formula=maxno2~1,
+                          locations=medidas.geo.simp) 
+variograma <- variogram(gstat.parametros, width=0.5) 
+var.teorico <-fit.variogram(variograma, vgm(c("Exp", "Ste", "Sph","Mat","Gau","Spl"))) 
+var.teorico
+plot(variograma, var.teorico)
+
+```
+  
+  
+A continuación generamos el mapa de interpolación final:  
+
+
+```{r plot_interpolado}
+# mapa interpolado
+no2.ordkg <- krige(formula=maxno2~1, 
+                   locations=medidas.geo.simp,newdata<- as(limite.raster,"SpatialGrid"), 
+                   model=var.teorico) 
+no2.okgr <- raster::mask(raster(no2.ordkg),limite.madrid) 
+plot(no2.okgr)
+```
 
 
 
