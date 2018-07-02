@@ -78,6 +78,10 @@ userFrame <- twListToDF(userInfo)
 # summario del dataframe
 summary(userFrame)
 
+# salvamos la lista obtenida en el sistema
+save(userFrame, file = "userFrame.RData", 
+     compress = "bzip2", compression_level = 9)
+
 #___________________________________________________________
 
 # Filtramos el dataFrame obteniendo el listado de todos aquellos usuarios 
